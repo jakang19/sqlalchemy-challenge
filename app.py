@@ -33,8 +33,12 @@ def home():
 @app.route("/api/v1.0/precipitation")
 def precipitation():
 	session = Session(engine)
-
-	results = session.query(Measurement.date, Measurement.prcp).all()
+	
+	last_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
+	one_year_ago = (dt.datetime.strptime(last_date[0],'%Y-%m-%d') \
+                    - dt.timedelta(days=365)).strftime('%Y-%m-%d')
+	results = session.query(Measurement.date, Measurement.prcp).\
+filter(Measurement.date>=one_year_ago).order_by(Measurement.date).all()
 
 	session.close()
 	
@@ -70,7 +74,7 @@ def tobs():
 	
 	results = session.query(Measurement.date, Measurement.tobs).\
 filter(Measurement.station=='USC00519281').\
-filter(Measurement.date >= one_year_ago).\
+filter(Measurement.date>=one_year_ago).\
 order_by(Measurement.date).all()
 	
 	session.close()
